@@ -126,3 +126,12 @@ def following(request):
         'posts':posts_paginados
     }
     return render(request,'network/following.html',context)
+
+@login_required
+def editPost(request,id,new_value):
+    post = Post.objects.get(pk=id)
+    if request.method == 'POST' and request.user == post.user:    
+        post.content = new_value
+        post.save()
+        print(f"{id} - {new_value}")
+    return HttpResponse('teste')
