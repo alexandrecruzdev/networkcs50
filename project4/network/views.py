@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.urls import reverse
 from .forms import PostForm
 from .models import User,Post
@@ -135,3 +135,31 @@ def editPost(request,id,new_value):
         post.save()
         print(f"{id} - {new_value}")
     return HttpResponse('teste')
+
+
+
+@login_required
+def follow(request, follower, followed):
+    print(f"{follower} -> {followed}")
+    # Supondo que você tenha um modelo UserProfile para os usuários
+    follower_obj = User.objects.get(username=follower)
+    followed_obj = User.objects.get(username=followed)
+
+    followed_obj.followers.add(follower_obj)
+    # Agora você pode acessar os seguidores do seguidor
+    if request.method == 'POST':
+        return redirect('perfil', user_perfil=followed)
+
+
+@login_required
+def unfollow(request, unfollower, unfollowed):
+    print(f"{unfollower} -> {unfollowed}")
+    # Supondo que você tenha um modelo UserProfile para os usuários
+    unfollower_obj = User.objects.get(username=unfollower)
+    unfollowed_obj = User.objects.get(username=unfollowed)
+
+    unfollowed_obj.followers.remove(unfollower_obj)
+    # Agora você pode acessar os seguidores do seguidor
+    if request.method == 'POST':
+        return redirect('perfil', user_perfil=unfollowed)
+
