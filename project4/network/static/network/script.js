@@ -124,3 +124,51 @@ const handlerOnclickUnFollow = (unfollower) => {
 
  
 }
+
+async function handlerOnclickLike(btnlike,id_liker,id_post){
+  
+  let id_post_pathname = window.location.pathname
+  
+
+  const url = `/like/${id_liker}/${id_post}`;
+
+  const csrftoken = getCookie('csrftoken');
+
+  const requestOptions = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json', // ou 'application/x-www-form-urlencoded', dependendo do que sua view espera
+      'X-CSRFToken': csrftoken,  // Inclui o token CSRF no cabeçalho
+  },
+    body: JSON.stringify({ id_liker:id_liker, id_post: id_post})  // Transforma os dados em JSON
+  };
+  
+  // Realiza a requisição
+  await fetch(url, requestOptions)
+    .then(response => response.json())  // Extrai o conteúdo de texto da resposta
+    .then(data => {
+    
+     
+     pai = btnlike.parentNode.children[0];
+     pai.innerText = data.numberlike
+     if(data.btnname == 'Like')
+     {
+      var staticurl ="/static/network/img/dislike.png"
+      btnlike.src = staticurl
+     }
+     if(data.btnname == 'Dislike')
+     {
+      var staticurl ="/static/network/img/like.png"
+      btnlike.src = staticurl
+     }
+
+     console.log(data)
+    })
+    .catch(error => {
+      console.error('Erro:', error);
+    });
+
+
+
+ 
+}

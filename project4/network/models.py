@@ -16,6 +16,7 @@ class Post(models.Model):
     def __str__(self):
         return self.content
 
+        
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

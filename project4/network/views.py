@@ -1,12 +1,16 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render,redirect
 from django.urls import reverse
 from .forms import PostForm
 from .models import User,Post
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+
+from django.db.models import Q
+
+
 def index(request):
     form = PostForm()
     posts = Post.objects.all().order_by('-id')
@@ -18,8 +22,10 @@ def index(request):
     paginator = Paginator(posts,10)
     page = request.GET.get('pagina')
     posts_paginados = paginator.get_page(page)
+    user_id = request.user.id
     context = {
-        'posts':posts_paginados
+        'posts':posts_paginados,
+        'user_id':user_id
     }
     return render(request, "network/index.html",context)
 
@@ -46,7 +52,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("login"))
 
 
 def register(request):
@@ -104,8 +110,6 @@ def perfil(request,user_perfil):
 
 
 
-
-
 @login_required
 def following(request):
     user = User.objects.get(username = request.user)
@@ -117,7 +121,7 @@ def following(request):
         for post in all_posts:
             if user == post.user:
                 posts_filtered.append(post)
-       
+
 
     paginator = Paginator(posts_filtered,10)
     page = request.GET.get('pagina')
@@ -126,7 +130,7 @@ def following(request):
         'posts':posts_paginados
     }
     return render(request,'network/following.html',context)
-
+    
 @login_required
 def editPost(request,id,new_value):
     post = Post.objects.get(pk=id)
@@ -162,4 +166,27 @@ def unfollow(request, unfollower, unfollowed):
     # Agora você pode acessar os seguidores do seguidor
     if request.method == 'POST':
         return redirect('perfil', user_perfil=unfollowed)
+
+
+@login_required
+def like(request, id_liker, id_post):
+    liker =  User.objects.get(id=id_liker)
+    post = Post.objects.get(id = id_post)
+    likers = post.liked_by.all()
+    if liker in likers:
+        post.liked_by.remove(liker)
+        print(f"{liker} <- {post} ")
+        numberlike = len(post.liked_by.all())
+        print(numberlike)
+        return JsonResponse({'btnname':'Like','numberlike':numberlike})
+
+    else:
+        post.liked_by.add(liker)
+        print(f"{liker} -> {post}")
+        numberlike = len(post.liked_by.all())
+        print(numberlike)
+        return JsonResponse({'btnname':'Dislike','numberlike':numberlike})
+  
+    
+
 
